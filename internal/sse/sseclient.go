@@ -12,8 +12,6 @@ const (
 )
 
 func StartListening(url string, out chan<- []byte) error {
-	defer close(out)
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
