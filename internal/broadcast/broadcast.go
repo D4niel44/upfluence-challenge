@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type MapFunc[In any, Out any] func(In) (Out, error)
+type MapFunc[In any, Out any] func(In) Out
 
 type BroadcastService[In any, Out any] struct {
 	mu       sync.RWMutex
@@ -63,10 +63,7 @@ func (server *BroadcastService[In, Out]) StartBroadcast(inputChan <-chan In, num
 	}()
 
 	for inputValue := range inputChan {
-		outputValue, err := server.mapFunc(inputValue)
-		if err != nil {
-			return err
-		}
+		outputValue := server.mapFunc(inputValue)
 		server.mu.RLock()
 		for out, done := range server.channels {
 			workers <- WorkerInput[Out]{

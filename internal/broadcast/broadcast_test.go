@@ -26,7 +26,7 @@ func assertEqual(t *testing.T, expected string, actual string) {
 }
 
 func initBroadcastService() *BroadcastService[string, string] {
-	return NewBroadcastService(func(x string) (string, error) { return x, nil })
+	return NewBroadcastService(func(x string) string { return x })
 }
 
 func sendData() chan string {
