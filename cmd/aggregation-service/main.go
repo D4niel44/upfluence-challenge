@@ -71,10 +71,10 @@ loop:
 		aggregatorState.MinTimestamp = 0
 		aggregatorState.MaxTimestamp = 0
 	}
-	w.Write(EncodeResponse(aggregatorState))
+	w.Write(encodeResponse(aggregatorState))
 }
 
-func EncodeResponse(aggregation *aggregations.AggregatorState) []byte {
+func encodeResponse(aggregation *aggregations.AggregatorState) []byte {
 	response := make(map[string]interface{})
 	response["total_posts"] = aggregation.TotalPosts
 	response["minimum_timestamp"] = aggregation.MinTimestamp
