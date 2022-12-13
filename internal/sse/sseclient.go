@@ -1,3 +1,4 @@
+// Package sse contains implementations for using the Server Sent Events protocol.
 package sse
 
 import (
@@ -11,6 +12,11 @@ const (
 	dataPrefix = "data"
 )
 
+// StartListening initializes an SSE client the listens
+// to events in the given endpoint, and forwards them to
+// the output channel.
+// This method does not close the given channel, so it can
+// be reused if the connection is closed.
 func StartListening(url string, out chan<- []byte) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
