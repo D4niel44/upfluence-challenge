@@ -13,13 +13,13 @@ type BroadcastService[In any, Out any] struct {
 	mapFunc  MapFunc[In, Out]
 }
 
-type WorkerInput[T any] struct {
+type workerInput[T any] struct {
 	value    T
 	outChan  chan<- T
 	doneChan <-chan struct{}
 }
 
-func worker[T any](in <-chan WorkerInput[T], timeout time.Duration, wg *sync.WaitGroup) {
+func worker[T any](in <-chan workerInput[T], timeout time.Duration, wg *sync.WaitGroup) {
 	for input := range in {
 		timeoutSignal := time.After(timeout)
 		select {
@@ -32,7 +32,7 @@ func worker[T any](in <-chan WorkerInput[T], timeout time.Duration, wg *sync.Wai
 	wg.Done()
 }
 
-func startWorkers[T any](numWorkers int, in <-chan WorkerInput[T], timeout time.Duration) *sync.WaitGroup {
+func startWorkers[T any](numWorkers int, in <-chan workerInput[T], timeout time.Duration) *sync.WaitGroup {
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
@@ -49,7 +49,7 @@ func NewBroadcastService[In any, Out any](mapFunc MapFunc[In, Out]) *BroadcastSe
 }
 
 func (server *BroadcastService[In, Out]) StartBroadcast(inputChan <-chan In, numWorkers int, timeout time.Duration) error {
-	workers := make(chan WorkerInput[Out], 1)
+	workers := make(chan workerInput[Out], 1)
 	wg := startWorkers(numWorkers, workers, timeout)
 	defer func() {
 		close(workers)
@@ -66,7 +66,7 @@ func (server *BroadcastService[In, Out]) StartBroadcast(inputChan <-chan In, num
 		outputValue := server.mapFunc(inputValue)
 		server.mu.RLock()
 		for out, done := range server.channels {
-			workers <- WorkerInput[Out]{
+			workers <- workerInput[Out]{
 				value:    outputValue,
 				outChan:  out,
 				doneChan: done,
