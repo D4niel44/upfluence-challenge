@@ -15,7 +15,7 @@ type SSEService struct {
 	timeout    time.Duration
 }
 
-func parseJsonEvent(eventBlob []byte) (eventData map[string]interface{}) {
+func parseJSONEvent(eventBlob []byte) (eventData map[string]interface{}) {
 	d := json.NewDecoder(bytes.NewReader(eventBlob))
 	d.UseNumber()
 	if err := d.Decode(&eventData); err != nil {
@@ -24,7 +24,7 @@ func parseJsonEvent(eventBlob []byte) (eventData map[string]interface{}) {
 	return
 }
 
-var broadcastService = broadcast.NewBroadcastService(parseJsonEvent)
+var broadcastService = broadcast.NewBroadcastService(parseJSONEvent)
 
 func (config *SSEService) startSSEService() {
 	c := make(chan []byte, 1)
