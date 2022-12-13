@@ -10,10 +10,10 @@ import (
 // before broadcasting them to each client.
 type MapFunc[In any, Out any] func(In) Out
 
-// BroadcastService forwards the values received through an input channel,
+// Service forwards the values received through an input channel,
 // to many output channels. Each value received is first maped using the
 // given MapFunc, before forwarding them.
-type BroadcastService[In any, Out any] struct {
+type Service[In any, Out any] struct {
 	mu       sync.RWMutex
 	channels map[chan<- Out]chan struct{}
 	mapFunc  MapFunc[In, Out]
@@ -48,8 +48,8 @@ func startWorkers[T any](numWorkers int, in <-chan workerInput[T], timeout time.
 }
 
 // NewBroadcastService creates a new BroadCastService, and initializes it.
-func NewBroadcastService[In any, Out any](mapFunc MapFunc[In, Out]) *BroadcastService[In, Out] {
-	return &BroadcastService[In, Out]{
+func NewBroadcastService[In any, Out any](mapFunc MapFunc[In, Out]) *Service[In, Out] {
+	return &Service[In, Out]{
 		channels: make(map[chan<- Out]chan struct{}),
 		mapFunc:  mapFunc,
 	}
@@ -59,7 +59,7 @@ func NewBroadcastService[In any, Out any](mapFunc MapFunc[In, Out]) *BroadcastSe
 // The parameters numWorkers and timeout can be used to control how many worker goroutines are used to
 // forward the values to the clients, and to set a tiemout after which a worker thread will stop trying
 // to send a value to a client.
-func (server *BroadcastService[In, Out]) StartBroadcast(inputChan <-chan In, numWorkers int, timeout time.Duration) error {
+func (server *Service[In, Out]) StartBroadcast(inputChan <-chan In, numWorkers int, timeout time.Duration) error {
 	workers := make(chan workerInput[Out], 1)
 	wg := startWorkers(numWorkers, workers, timeout)
 	defer func() {
@@ -90,7 +90,7 @@ func (server *BroadcastService[In, Out]) StartBroadcast(inputChan <-chan In, num
 
 // AddClient adds a new client, to start receiving messages through
 // the given channel. This method blocks until the client can be added.
-func (server *BroadcastService[In, Out]) AddClient(c chan<- Out) {
+func (server *Service[In, Out]) AddClient(c chan<- Out) {
 	server.mu.Lock()
 	server.channels[c] = make(chan struct{})
 	server.mu.Unlock()
@@ -100,7 +100,7 @@ func (server *BroadcastService[In, Out]) AddClient(c chan<- Out) {
 // This method should always be called when the client no longer wants to receive
 // messages.
 // Calling this method with an already removed client is a no op.
-func (server *BroadcastService[In, Out]) RemoveClient(c chan<- Out) {
+func (server *Service[In, Out]) RemoveClient(c chan<- Out) {
 	server.mu.Lock()
 	done := server.channels[c]
 	delete(server.channels, c)

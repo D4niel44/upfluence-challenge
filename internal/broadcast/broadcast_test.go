@@ -25,7 +25,7 @@ func assertEqual(t *testing.T, expected string, actual string) {
 	}
 }
 
-func initBroadcastService() *BroadcastService[string, string] {
+func initBroadcastService() *Service[string, string] {
 	return NewBroadcastService(func(x string) string { return x })
 }
 
